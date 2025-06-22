@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Phân Tích Cầu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-color: #16213e;
+            --primary-text: #e0e0e0;
+            --secondary-text: #a7a7a7;
+            --border-color: #0f3460;
+            --tai-color: #e94560;
+            --xiu-color: #5378c6;
+            --green-color: #4CAF50;
+            --red-color: #F44336;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1600px;
+            gap: 15px;
+        }
+        
+        .game-frame {
+            width: 100%;
+            height: 65vh;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background-color: #fff;
+        }
+
+        .tool-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 15px;
+            width: 100%;
+        }
+
+        .card {
+            background-color: var(--card-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-text);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card h3::before {
+             content: '🔹';
+             margin-right: 10px;
+        }
+
+        .update-card {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+        }
+        
+        #patternStatus {
+            font-size: 0.9em;
+            color: var(--secondary-text);
+            font-style: italic;
+        }
+
+        .input-area {
+            grid-column: 1 / -1;
+            align-items: center;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-grow: 1;
+            max-width: 250px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-tai { background: linear-gradient(45deg, var(--tai-color), #ff758c); }
+        .btn-xiu { background: linear-gradient(45deg, var(--xiu-color), #79a7ff); }
+
+        .btn-control {
+            background-color: #3d3d5c;
+            color: var(--secondary-text);
+            font-size: 0.9em;
+            padding: 8px 15px;
+            flex-grow: 0;
+        }
+        
+        .btn-control:hover {
+             background-color: #52527a;
+             color: var(--primary-text);
+        }
+
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            color: var(--secondary-text);
+            font-size: 0.9em;
+        }
+
+        input[type="number"], select {
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            width: 100px;
+            text-align: right;
+            font-size: 1em;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--xiu-color);
+            box-shadow: 0 0 5px rgba(83, 120, 198, 0.5);
+        }
+
+        .pnl-display {
+            font-size: 2.5em;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: rgba(0,0,0,0.2);
+        }
+        .pnl-display.positive { color: var(--green-color); }
+        .pnl-display.negative { color: var(--red-color); }
+
+        .suggestion-details { text-align: center; }
+        .suggestion-details .prediction-result {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+        }
+        .suggestion-details .prediction-result.tai { color: var(--tai-color); }
+        .suggestion-details .prediction-result.xiu { color: var(--xiu-color); }
+        
+        .suggestion-details .amount {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #f0e68c; /* Khaki */
+        }
+        
+        .suggestion-details .reason {
+            font-size: 0.9em;
+            color: var(--secondary-text);
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .history-card .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: auto; /* Pushes to bottom */
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .history-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            color: white;
+            font-weight: 600;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.4);
+            font-size: 1em;
+            transition: transform 0.2s;
+        }
+        
+        .history-item:hover {
+            transform: scale(1.1);
+        }
+
+        .history-item.tai { background-color: var(--tai-color); }
+        .history-item.xiu { background-color: var(--xiu-color); }
+        
+        .stats-display {
+             display: flex;
+             flex-direction: column;
+             gap: 15px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1em;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        
+        .stat-item .value {
+            font-weight: 600;
+        }
+
+        .threshold-warning {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .threshold-warning.stop-loss-alert {
+            background-color: var(--red-color);
+            color: white;
+        }
+        .threshold-warning.take-profit-alert {
+            background-color: var(--green-color);
+            color: white;
+        }
+
+        .suggestion-card .reason {
+            font-size: 1em;
+            color: var(--secondary-text);
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .pattern-stats-card {
+            order: 3; /* Change display order */
+        }
+
+        .pattern-stats-card .stat-item {
+             display: flex;
+             justify-content: space-between;
+             border-bottom: 1px dashed var(--border-color);
+             padding-bottom: 10px;
+             margin-bottom: 10px;
+        }
+        
+        .pattern-stats-card .stat-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .pattern-stats-card .stat-name {
+            font-weight: 600;
+        }
+        
+        .pattern-stats-card .stat-performance {
+            font-weight: normal;
+            color: var(--secondary-text);
+        }
+        
+        .pattern-stats-card .win-rate {
+            font-weight: bold;
+        }
+        
+        .pattern-stats-card .win-rate.good { color: var(--green-color); }
+        .pattern-stats-card .win-rate.bad { color: var(--red-color); }
+        .pattern-stats-card .win-rate.neutral { color: var(--secondary-text); }
+        
+        .reason .warning {
+            display: block;
+            margin-top: 5px;
+            color: #ffcc00; /* Amber color for warnings */
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .main-container {
+                gap: 10px;
+            }
+
+            .game-frame {
+                height: 50vh; /* Reduce height on mobile */
+            }
+
+            .tool-container {
+                grid-template-columns: 1fr; /* Force single column */
+                gap: 10px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+            
+            .card h3 {
+                font-size: 1em;
+                margin-bottom: 15px;
+            }
+
+            .buttons {
+                flex-direction: column; /* Stack buttons vertically */
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 1.1em;
+                max-width: none; /* Allow buttons to fill width */
+            }
+            
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            input[type="number"], select {
+                width: 100%;
+                box-sizing: border-box; /* Ensure padding is included in width */
+                text-align: left;
+            }
+            
+            .pnl-display {
+                font-size: 2em;
+            }
+            
+            .suggestion-details .prediction-result {
+                font-size: 1.8em;
+            }
+            
+            .suggestion-details .amount {
+                font-size: 1.3em;
+            }
+            
+            .history-item {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <iframe class="game-frame" src="https://web.sun.win/?affId=Sunwin" title="Game">
+            <p>Your browser does not support iframes.</p>
+        </iframe>
+
+        <div class="tool-container">
+            <div class="card update-card">
+                <span id="patternStatus">Đang sử dụng cầu mặc định...</span>
+                <button id="updatePatternsBtn" class="btn btn-control">Cập Nhật Cầu</button>
+            </div>
+            
+            <div class="card input-area">
+                <h3>VÀO KẾT QUẢ PHIÊN</h3>
+                <div class="buttons">
+                    <button id="taiBtn" class="btn btn-tai">TÀI</button>
+                    <button id="xiuBtn" class="btn btn-xiu">XỈU</button>
+                </div>
+            </div>
+
+            <div class="card capital-card">
+                <h3>💰 Quản Lý Vốn & Chiến Lược</h3>
+                <div class="form-group">
+                    <label for="totalCapital">Tổng Vốn</label>
+                    <input type="number" id="totalCapital" value="1000">
+                </div>
+                <div class="form-group">
+                    <label for="baseBet">Mức Cược Cơ Bản</label>
+                    <input type="number" id="baseBet" value="10">
+                </div>
+                <div class="form-group">
+                    <label for="betStrategy">Chiến lược Cược</label>
+                    <select id="betStrategy">
+                        <option value="none">Không theo</option>
+                        <option value="martingale">Gấp thếp (Martingale)</option>
+                        <option value="fibonacci">Fibonacci</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label for="takeProfit">Chốt Lời (Lãi đạt mức)</label>
+                    <input type="number" id="takeProfit" value="200">
+                </div>
+                 <div class="form-group">
+                    <label for="stopLoss">Cắt Lỗ (Lỗ chạm mức)</label>
+                    <input type="number" id="stopLoss" value="100">
+                </div>
+            </div>
+
+            <div class="card report-card">
+                <h3>📈 Gợi Ý Cho Phiên TỚI & Báo Cáo P/L</h3>
+                <div id="pnlDisplay" class="pnl-display">0</div>
+                <div class="suggestion-details">
+                    <div id="suggestionPrediction" class="prediction-result">...</div>
+                    <div>Cược đề nghị:</div>
+                    <div id="suggestionAmount" class="amount">...</div>
+                    <div id="suggestionReason" class="reason">Chọn một chiến lược để bắt đầu</div>
+                </div>
+                <canvas id="pnlChart" width="400" height="180"></canvas>
+                <div id="thresholdWarning" class="threshold-warning"></div>
+            </div>
+
+            <div class="card suggestion-card">
+                <h3>📈 Gợi Ý Cho Phiên TỚI</h3>
+                <div id="suggestionPrediction" class="prediction-result">...</div>
+                <div id="suggestionReason" class="reason">Bắt đầu nhập để nhận gợi ý</div>
+            </div>
+
+            <div class="card pattern-stats-card">
+                <h3>📊 Hiệu Quả Cầu</h3>
+                <div id="patternStatsDisplay">Chưa có dữ liệu...</div>
+            </div>
+
+            <div class="card history-card">
+                <h3>Lịch Sử (Mới nhất bên trái)</h3>
+                <div id="historyDisplay" class="history-display"></div>
+                 <div class="controls">
+                    <button id="undoBtn" class="btn btn-control">Hoàn Tác</button>
+                    <button id="resetBtn" class="btn btn-control">Làm Mới</button>
+                </div>
+            </div>
+
+            <div class="card stats-card">
+                <h3>📊 Thống Kê (100 Phiên Gần Nhất)</h3>
+                <div id="statsDisplay" class="stats-display"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // --- CapitalManager ---
+        class CapitalManager {
+            constructor() {
+                this.fibSequence = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55];
+                this.reset();
+            }
+            reset() {
+                this.lastBetResult = 'win';
+                this.martingaleBet = 0;
+                this.fibonacciIndex = 0;
+            }
+            getSuggestion(settings) {
+                const { strategy, baseBet } = settings;
+                let amount = 0;
+                let reason = '';
+
+                switch (strategy) {
+                    case 'martingale':
+                        if (this.lastBetResult === 'loss') {
+                            this.martingaleBet = this.martingaleBet * 2;
+                        } else {
+                            this.martingaleBet = baseBet;
+                        }
+                        amount = this.martingaleBet;
+                        break;
+                    case 'fibonacci':
+                        if (this.lastBetResult === 'loss') {
+                            this.fibonacciIndex = Math.min(this.fibonacciIndex + 1, this.fibSequence.length - 1);
+                        } else {
+                            this.fibonacciIndex = Math.max(this.fibonacciIndex - 2, 0);
+                        }
+                        amount = this.fibSequence[this.fibonacciIndex] * baseBet;
+                        break;
+                    case 'none':
+                    default:
+                        amount = baseBet;
+                        break;
+                }
+                return { amount };
+            }
+            updateAfterBet(result) {
+                this.lastBetResult = result;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Element Refs ---
+            const taiBtn = document.getElementById('taiBtn');
+            const xiuBtn = document.getElementById('xiuBtn');
+            const undoBtn = document.getElementById('undoBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const pnlDisplay = document.getElementById('pnlDisplay');
+            const suggestionPrediction = document.getElementById('suggestionPrediction');
+            const suggestionAmount = document.getElementById('suggestionAmount');
+            const suggestionReason = document.getElementById('suggestionReason');
+            const pnlChartCanvas = document.getElementById('pnlChart').getContext('2d');
+            const thresholdWarning = document.getElementById('thresholdWarning');
+            const historyDisplay = document.getElementById('historyDisplay');
+            const statsDisplay = document.getElementById('statsDisplay');
+
+            // --- State & Systems ---
+            let history = [];
+            let pnlChart = null;
+            const capitalManager = new CapitalManager();
+            let lastPrediction = null; // Prediction for the round that just FINISHED
+
+            // --- Dynamic Pattern Analysis ---
+            
+            // In a real application, you would replace this URL with your own JSON file 
+            // hosted on a service like GitHub Gist.
+            const PATTERNS_URL = 'MOCK_DATA'; 
+            
+            const DEFAULT_PATTERNS = [
+                {
+                    id: 'bet',
+                    name: 'Cầu Bệt',
+                    description: 'Cầu Bệt! Theo {next}',
+                    check: (h) => {
+                        if (h.length < 3) return null;
+                        const last3 = h.slice(-3);
+                        if (last3[0] === last3[1] && last3[1] === last3[2]) {
+                            const next = last3[0];
+                            return { next };
+                        }
+                        return null;
+                    }
+                },
+                {
+                    id: '1-1',
+                    name: 'Cầu 1-1',
+                    description: 'Cầu 1-1! Đánh {next}',
+                    check: (h) => {
+                        if (h.length < 3) return null;
+                        const last3 = h.slice(-3);
+                        if (last3[0] === last3[2] && last3[0] !== last3[1]) {
+                             const next = last3[1] === 'tai' ? 'xiu' : 'tai';
+                             return { next };
+                        }
+                        return null;
+                    }
+                },
+                {
+                    id: '2-2',
+                    name: 'Cầu 2-2',
+                    description: 'Cầu 2-2! Theo {next}',
+                    check: (h) => {
+                        if (h.length < 4) return null;
+                        const last4 = h.slice(-4);
+                        if (last4[0] === last4[1] && last4[2] === last4[3] && last4[1] !== last4[2]) {
+                            const next = last4[2];
+                            return { next };
+                        }
+                        return null;
+                    }
+                }
+            ];
+
+            const initializePatterns = (patterns) => {
+                // If patterns being loaded already have stats (from localStorage), keep them.
+                return patterns.map(p => ({
+                    ...p,
+                    stats: p.stats || { wins: 0, total: 0 }
+                }));
+            };
+
+            let activePatterns = initializePatterns(DEFAULT_PATTERNS);
+
+            const fetchAndUpdatePatterns = () => {
+                const statusEl = document.getElementById('patternStatus');
+                const btn = document.getElementById('updatePatternsBtn');
+                
+                statusEl.textContent = 'Đang cập nhật...';
+                btn.disabled = true;
+
+                // MOCK fetch
+                new Promise((resolve) => {
+                     setTimeout(() => resolve({ version: '1.1 (Mặc định)', patterns: DEFAULT_PATTERNS }), 1000);
+                })
+                .then(data => {
+                    const currentStats = activePatterns.reduce((acc, p) => {
+                        acc[p.id] = p.stats;
+                        return acc;
+                    }, {});
+                    
+                    activePatterns = initializePatterns(data.patterns);
+                    activePatterns.forEach(p => {
+                        if (currentStats[p.id]) {
+                            p.stats = currentStats[p.id];
+                        }
+                    });
+
+                    statusEl.textContent = `Cầu đã cập nhật (v${data.version}) - ${new Date().toLocaleTimeString()}`;
+                    updateAll();
+                })
+                .catch(error => {
+                    console.error("Lỗi cập nhật cầu:", error);
+                    statusEl.textContent = 'Lỗi! Sử dụng cầu mặc định.';
+                    activePatterns = initializePatterns(DEFAULT_PATTERNS);
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                });
+            };
+
+            const analyzeAndSuggest = (historyOutcomes, patterns) => {
+                let matchedPatterns = [];
+
+                for (const pattern of patterns) {
+                    const result = pattern.check(historyOutcomes);
+                    if (result) {
+                        matchedPatterns.push({ ...pattern, result });
+                    }
+                }
+                
+                if (matchedPatterns.length === 0) {
+                    return { prediction: null, reason: 'Chưa rõ cầu' };
+                }
+
+                matchedPatterns.sort((a, b) => {
+                    const rateA = a.stats.total > 2 ? a.stats.wins / a.stats.total : -1;
+                    const rateB = b.stats.total > 2 ? b.stats.wins / b.stats.total : -1;
+                    return rateB - rateA;
+                });
+
+                const bestPattern = matchedPatterns[0];
+                const { result, stats, name, id } = bestPattern;
+                const winRateText = stats.total > 0 ? `(Thắng ${stats.wins}/${stats.total})` : '';
+                
+                let reason = `${name} ${winRateText}: ${bestPattern.description.replace('{next}', result.next.toUpperCase())}`;
+
+                if (id === 'bet') {
+                    const h = historyOutcomes;
+                    let currentStreak = 0;
+                    const streakType = h[h.length - 1];
+                    for (let i = h.length - 1; i >= 0; i--) {
+                        if (h[i] === streakType) currentStreak++;
+                        else break;
+                    }
+                    if (currentStreak >= 5) {
+                        reason += ` <span class="warning">⚠️ Cầu đã dài!</span>`;
+                    }
+                }
+
+                return { prediction: result.next, reason: reason, patternId: id };
+            };
+
+            // --- App Logic ---
+            const addResult = (outcome) => {
+                if (lastPrediction && lastPrediction.patternId) {
+                    const patternToUpdate = activePatterns.find(p => p.id === lastPrediction.patternId);
+                    if (patternToUpdate) {
+                        patternToUpdate.stats.total++;
+                        if (outcome === lastPrediction.prediction) {
+                            patternToUpdate.stats.wins++;
+                        }
+                    }
+                }
+
+                const settings = getCapitalSettings();
+                let pnl = 0;
+                const betOn = lastPrediction ? lastPrediction.prediction : null;
+                const capitalSuggestionForCurrentBet = capitalManager.getSuggestion(settings);
+                const betAmount = capitalSuggestionForCurrentBet.amount;
+
+                if (betOn) {
+                    if (outcome === betOn) {
+                        pnl = betAmount;
+                        capitalManager.updateAfterBet('win');
+                    } else {
+                        pnl = -betAmount;
+                        capitalManager.updateAfterBet('loss');
+                    }
+                } else {
+                    capitalManager.updateAfterBet('win');
+                }
+
+                const lastPnl = history.length > 0 ? history[history.length - 1].cumulativePnl : 0;
+                history.push({
+                    outcome,
+                    prediction: betOn,
+                    betAmount: betAmount,
+                    pnl: pnl,
+                    cumulativePnl: lastPnl + pnl
+                });
+                
+                updateAll();
+            };
+            
+            const resetHistory = () => {
+                if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử và thống kê cầu không?')) {
+                    history = [];
+                    capitalManager.reset();
+                    lastPrediction = null;
+                    activePatterns = initializePatterns(DEFAULT_PATTERNS); // Reset stats
+                    if(pnlChart) { pnlChart.destroy(); pnlChart = null; }
+                    updateAll();
+                }
+            };
+            
+            const updateAll = () => {
+                renderHistory();
+                renderStats();
+                
+                const nextSuggestion = analyzeAndSuggest(history.map(h => h.outcome), activePatterns);
+                
+                lastPrediction = { 
+                    prediction: nextSuggestion.prediction, 
+                    patternId: nextSuggestion.patternId 
+                };
+
+                const settings = getCapitalSettings();
+                const capitalSuggestion = capitalManager.getSuggestion(settings);
+                
+                renderSuggestion(nextSuggestion, capitalSuggestion);
+                renderCapitalReport();
+                renderPatternStats();
+
+                saveHistory();
+            };
+            
+            const undoLast = () => {
+                if (history.length > 0) {
+                     console.warn("Chức năng Hoàn tác sẽ không cập nhật lại Thống kê hiệu quả cầu để giữ tính đơn giản.");
+                    history.pop();
+                    updateAll();
+                }
+            };
+
+            const loadHistory = () => {
+                 const savedHistory = localStorage.getItem('taiXiuHistory');
+                 if (savedHistory) history = JSON.parse(savedHistory);
+
+                 const savedPatterns = localStorage.getItem('taiXiuPatterns');
+                 if (savedPatterns) {
+                    const parsedPatterns = JSON.parse(savedPatterns);
+                    // Merge saved stats with default pattern functions
+                    activePatterns = DEFAULT_PATTERNS.map(dp => {
+                        const savedData = parsedPatterns.find(sp => sp.id === dp.id);
+                        return { ...dp, stats: savedData ? savedData.stats : { wins: 0, total: 0 } };
+                    });
+                 } else {
+                    activePatterns = initializePatterns(DEFAULT_PATTERNS);
+                 }
+            };
+
+            const saveHistory = () => {
+                 localStorage.setItem('taiXiuHistory', JSON.stringify(history));
+                 const patternsToSave = activePatterns.map(({ check, ...p }) => p);
+                 localStorage.setItem('taiXiuPatterns', JSON.stringify(patternsToSave));
+            };
+            
+            // --- UI Rendering ---
+            const renderSuggestion = (pattern, capital) => {
+                if (pattern.prediction) {
+                    suggestionPrediction.textContent = pattern.prediction.toUpperCase();
+                    suggestionPrediction.className = 'prediction-result ' + pattern.prediction;
+                } else {
+                    suggestionPrediction.textContent = '...';
+                    suggestionPrediction.className = 'prediction-result';
+                }
+                suggestionAmount.textContent = capital.amount.toLocaleString();
+                suggestionReason.innerHTML = pattern.reason;
+            };
+
+            const renderCapitalReport = () => {
+                if (!history.length) {
+                    pnlDisplay.textContent = '0';
+                    pnlDisplay.className = 'pnl-display';
+                    if (pnlChart) pnlChart.destroy();
+                    pnlChart = null;
+                    thresholdWarning.textContent = '';
+                    thresholdWarning.className = 'threshold-warning';
+                    return;
+                }
+
+                const lastEntry = history[history.length - 1];
+                const currentPnl = lastEntry.cumulativePnl;
+                pnlDisplay.textContent = `${currentPnl > 0 ? '+' : ''}${currentPnl.toLocaleString()}`;
+                pnlDisplay.className = `pnl-display ${currentPnl > 0 ? 'positive' : currentPnl < 0 ? 'negative' : ''}`;
+                
+                const settings = getCapitalSettings();
+                if (settings.stopLoss > 0 && currentPnl <= -settings.stopLoss) {
+                    thresholdWarning.textContent = `CẢNH BÁO: Đã chạm ngưỡng CẮT LỖ!`;
+                    thresholdWarning.className = 'threshold-warning stop-loss-alert';
+                    thresholdWarning.style.display = 'block';
+                } else if (settings.takeProfit > 0 && currentPnl >= settings.takeProfit) {
+                     thresholdWarning.textContent = `CHÚC MỪNG: Đã đạt mục tiêu CHỐT LỜI!`;
+                    thresholdWarning.className = 'threshold-warning take-profit-alert';
+                    thresholdWarning.style.display = 'block';
+                } else {
+                    thresholdWarning.style.display = 'none';
+                }
+                
+                if(pnlChart) {
+                    pnlChart.data.labels = history.map((_, index) => `P${index + 1}`);
+                    pnlChart.data.datasets[0].data = history.map(h => h.cumulativePnl);
+                    pnlChart.update();
+                } else {
+                    pnlChart = new Chart(pnlChartCanvas, { /* ... chart options ... */ });
+                }
+            };
+
+            const renderHistory = () => {
+                historyDisplay.innerHTML = history
+                    .slice()
+                    .reverse()
+                    .map(h => `<div class="history-item ${h.outcome}">${h.outcome.charAt(0).toUpperCase()}</div>`)
+                    .join('');
+            };
+
+            const renderStats = () => {
+                const recentHistory = history.slice(-100);
+                if (recentHistory.length === 0) {
+                    statsDisplay.innerHTML = "Chưa có dữ liệu.";
+                    return;
+                }
+
+                const total = recentHistory.length;
+                const taiCount = recentHistory.filter(h => h.outcome === 'tai').length;
+                const xiuCount = total - taiCount;
+                const taiPercentage = ((taiCount / total) * 100).toFixed(1);
+                const xiuPercentage = ((xiuCount / total) * 100).toFixed(1);
+
+                let longestTaiStreak = 0;
+                let currentTaiStreak = 0;
+                let longestXiuStreak = 0;
+                let currentXiuStreak = 0;
+
+                for (const h of recentHistory) {
+                    if (h.outcome === 'tai') {
+                        currentTaiStreak++;
+                        currentXiuStreak = 0;
+                    } else {
+                        currentXiuStreak++;
+                        currentTaiStreak = 0;
+                    }
+                    longestTaiStreak = Math.max(longestTaiStreak, currentTaiStreak);
+                    longestXiuStreak = Math.max(longestXiuStreak, currentXiuStreak);
+                }
+                
+                statsDisplay.innerHTML = `
+                    <div class="stat-item"><span>Tổng số phiên:</span><span class="value">${total}</span></div>
+                    <div class="stat-item"><span>Tài:</span><span class="value">${taiCount} (${taiPercentage}%)</span></div>
+                    <div class="stat-item"><span>Xỉu:</span><span class="value">${xiuCount} (${xiuPercentage}%)</span></div>
+                    <div class="stat-item"><span>Chuỗi Tài dài nhất:</span><span class="value">${longestTaiStreak}</span></div>
+                    <div class="stat-item"><span>Chuỗi Xỉu dài nhất:</span><span class="value">${longestXiuStreak}</span></div>
+                `;
+            };
+
+            const renderPatternStats = () => {
+                const display = document.getElementById('patternStatsDisplay');
+                if (!activePatterns || activePatterns.every(p => p.stats.total === 0)) {
+                    display.innerHTML = 'Chưa có dữ liệu...';
+                    return;
+                }
+
+                display.innerHTML = activePatterns.map(p => {
+                    const { name, stats } = p;
+                    const rate = stats.total > 0 ? (stats.wins / stats.total) * 100 : 0;
+                    let rateClass = 'neutral';
+                    if (stats.total > 2) {
+                        if (rate > 60) rateClass = 'good';
+                        else if (rate < 40) rateClass = 'bad';
+                    }
+                    
+                    return `
+                        <div class="stat-item">
+                            <span class="stat-name">${name}</span>
+                            <span class="stat-performance">
+                                Thắng ${stats.wins}/${stats.total} 
+                                (<span class="win-rate ${rateClass}">${rate.toFixed(1)}%</span>)
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            const getCapitalSettings = () => {
+                return {
+                    totalCapital: parseFloat(document.getElementById('totalCapital').value) || 0,
+                    baseBet: parseFloat(document.getElementById('baseBet').value) || 0,
+                    strategy: document.getElementById('betStrategy').value,
+                    takeProfit: parseFloat(document.getElementById('takeProfit').value) || 0,
+                    stopLoss: parseFloat(document.getElementById('stopLoss').value) || 0,
+                };
+            };
+            
+            // --- Event Listeners ---
+            taiBtn.addEventListener('click', () => addResult('tai'));
+            xiuBtn.addEventListener('click', () => addResult('xiu'));
+            undoBtn.addEventListener('click', undoLast);
+            resetBtn.addEventListener('click', resetHistory);
+            document.getElementById('updatePatternsBtn').addEventListener('click', fetchAndUpdatePatterns);
+            ['totalCapital', 'baseBet', 'betStrategy', 'takeProfit', 'stopLoss'].forEach(id => {
+                 document.getElementById(id).addEventListener('change', updateAll);
+            });
+            
+            // --- Initial Load ---
+            loadHistory();
+            updateAll();
+        });
+    </script>
+</body>
+</html> 
